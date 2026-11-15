@@ -23,3 +23,8 @@
 - Probar en móvil: cámara/galería, lectura por IA, importación por enlace.
 - Verificar patrones de URL de las tiendas; tests del StyleEngine y del parser CSV; icono y nombre definitivos.
 - Las claves han circulado por chat: conviene regenerarlas cuando acabe el desarrollo.
+
+## APK compilada (entorno en la nube)
+- `flutter build apk --release` funcionó con Flutter 3.35.7, Android SDK 35 y un espejo local de Maven con reintentos
+  (Maven Central y el proxy de la nube devolvían 404/429 falsos). Tardó ~75 min la primera vez; con caché, mucho menos.
+- La APK está firmada con la clave de depuración (no apta para Play Store). Instálala permitiendo orígenes desconocidos.
