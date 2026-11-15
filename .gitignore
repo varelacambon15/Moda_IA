@@ -12,3 +12,4 @@ android/key.properties
 *.jks
 
 lib/secrets.dart
+*.apk
