@@ -13,3 +13,4 @@ android/key.properties
 
 lib/secrets.dart
 *.apk
+claves_api.txt
