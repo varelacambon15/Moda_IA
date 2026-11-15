@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
+import 'ui/catalog_page.dart';
 import 'ui/favorites_page.dart';
 import 'ui/home_page.dart';
 import 'ui/settings_page.dart';
@@ -52,6 +53,7 @@ class _ShellState extends State<Shell> {
     final pages = [
       HomePage(app: widget.app),
       FavoritesPage(app: widget.app),
+      CatalogPage(app: widget.app),
       SettingsPage(app: widget.app),
     ];
     return Scaffold(
@@ -62,6 +64,7 @@ class _ShellState extends State<Shell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.checkroom_outlined), selectedIcon: Icon(Icons.checkroom), label: 'Looks'),
           NavigationDestination(icon: Icon(Icons.favorite_border), selectedIcon: Icon(Icons.favorite), label: 'Favoritos'),
+          NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Catálogo'),
           NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Ajustes'),
         ],
       ),

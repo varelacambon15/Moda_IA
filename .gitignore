@@ -10,3 +10,5 @@ android/local.properties
 android/.gradle/
 android/key.properties
 *.jks
+
+lib/secrets.dart

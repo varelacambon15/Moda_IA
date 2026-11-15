@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -101,5 +102,60 @@ class AiService {
     } catch (_) {
       return null;
     }
+  }
+
+  bool get visionAvailable =>
+      settings.aiEnabled && _active.any((p) => p.visionModel != null);
+
+  /// Lee una foto (prenda, escaparate o etiqueta) y devuelve los datos de la prenda.
+  /// [modo]: 'imagen' | 'prenda' | 'etiqueta'.
+  Future<Map<String, dynamic>?> readGarment(Uint8List bytes, String modo) async {
+    final b64 = base64Encode(bytes);
+    final hint = modo == 'etiqueta'
+        ? 'La foto es de la etiqueta de una prenda: lee marca, nombre/referencia, precio y composición.'
+        : 'La foto es de una prenda (en tienda o una imagen suelta): identifica qué es, su color y estilo.';
+    final prompt = '$hint\nDevuelve SOLO un JSON con: '
+        '{"name": nombre corto en español, "store": marca o tienda si se ve o ""'
+        ', "price": número en euros o null, '
+        '"category": uno de ${Category.values.map((e) => e.name).toList()}, '
+        '"color": color principal en español (negro, blanco, gris, beige, marino, azul, vaquero, rojo, verde, caqui, marrón, rosa, burdeos, amarillo, camel), '
+        '"style": uno de [casual, elegante, urbano, fiesta, deportivo], '
+        '"season": uno de ${Season.values.map((e) => e.name).toList()}}';
+    for (final p in _active.where((p) => p.visionModel != null)) {
+      try {
+        final res = await http
+            .post(
+              Uri.parse('${p.baseUrl}/chat/completions'),
+              headers: {
+                'Authorization': 'Bearer ${settings.keyOf(p).trim()}',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode({
+                'model': p.visionModel,
+                'temperature': 0.1,
+                'messages': [
+                  {
+                    'role': 'user',
+                    'content': [
+                      {'type': 'text', 'text': prompt},
+                      {
+                        'type': 'image_url',
+                        'image_url': {'url': 'data:image/jpeg;base64,$b64'},
+                      },
+                    ],
+                  }
+                ],
+              }),
+            )
+            .timeout(const Duration(seconds: 40));
+        if (res.statusCode != 200) continue;
+        final data = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+        final out = data['choices'][0]['message']['content'] as String? ?? '';
+        final a = out.indexOf('{'), z = out.lastIndexOf('}');
+        if (a < 0 || z <= a) continue;
+        return jsonDecode(out.substring(a, z + 1)) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    return null;
   }
 }

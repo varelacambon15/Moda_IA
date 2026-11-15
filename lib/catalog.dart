@@ -4,6 +4,7 @@ import 'dart:io' show GZipCodec;
 import 'package:http/http.dart' as http;
 
 import 'models.dart';
+import 'my_catalog.dart';
 import 'settings.dart';
 
 // ───────────────────────── utilidades ─────────────────────────
@@ -431,7 +432,8 @@ class CatalogResult {
 
 class CatalogRepository {
   final AppSettings settings;
-  CatalogRepository(this.settings);
+  final MyCatalogStore mine;
+  CatalogRepository(this.settings, this.mine);
 
   Future<CatalogResult> load() async {
     final providers = <CatalogProvider>[
@@ -439,7 +441,7 @@ class CatalogRepository {
       if (settings.useAffiliate) AffiliateFeedProvider(parseSourceLines(settings.affiliateFeeds)),
       if (settings.useScraper) ScraperProvider(parseSourceLines(settings.scraperPages)),
     ];
-    final products = <Product>[];
+    final products = <Product>[...mine.items];
     final warnings = <String>[];
     for (final p in providers) {
       try {

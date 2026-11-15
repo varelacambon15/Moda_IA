@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models.dart';
+import 'secrets.dart';
 
 /// Línea "tienda|url" de los ajustes.
 class SourceLine {
@@ -32,22 +33,35 @@ class AiPreset {
   final String baseUrl;
   final String defaultModel;
   final String keyUrl;
-  const AiPreset(this.id, this.name, this.baseUrl, this.defaultModel, this.keyUrl);
+  final String? visionModel; // modelo gratuito con visión (null = no soporta)
+  const AiPreset(this.id, this.name, this.baseUrl, this.defaultModel, this.keyUrl,
+      [this.visionModel]);
 }
 
 const aiPresets = <AiPreset>[
   AiPreset('groq', 'Groq', 'https://api.groq.com/openai/v1',
-      'llama-3.3-70b-versatile', 'https://console.groq.com/keys'),
+      'llama-3.3-70b-versatile', 'https://console.groq.com/keys',
+      'meta-llama/llama-4-scout-17b-16e-instruct'),
   AiPreset('gemini', 'Google Gemini',
       'https://generativelanguage.googleapis.com/v1beta/openai',
-      'gemini-2.5-flash', 'https://aistudio.google.com/apikey'),
+      'gemini-2.5-flash', 'https://aistudio.google.com/apikey', 'gemini-2.5-flash'),
   AiPreset('openrouter', 'OpenRouter', 'https://openrouter.ai/api/v1',
-      'meta-llama/llama-3.3-70b-instruct:free', 'https://openrouter.ai/keys'),
+      'meta-llama/llama-3.3-70b-instruct:free', 'https://openrouter.ai/keys',
+      'google/gemma-3-27b-it:free'),
   AiPreset('cerebras', 'Cerebras', 'https://api.cerebras.ai/v1',
       'llama-3.3-70b', 'https://cloud.cerebras.ai'),
   AiPreset('mistral', 'Mistral', 'https://api.mistral.ai/v1',
-      'mistral-small-latest', 'https://console.mistral.ai/api-keys'),
+      'mistral-small-latest', 'https://console.mistral.ai/api-keys', 'pixtral-12b-2409'),
 ];
+
+const defaultScraperPages = '''# tienda|url de categoría (JSON-LD público; respeta robots.txt)
+Zara|https://www.zara.com/es/es/mujer-camisetas-l1362.html
+Mango|https://shop.mango.com/es/mujer/camisetas-y-tops_c18813536
+Bershka|https://www.bershka.com/es/mujer/ropa/camisetas-c1010193132.html
+Pull&Bear|https://www.pullandbear.com/es/mujer/ropa/camisetas-n6417
+Stradivarius|https://www.stradivarius.com/es/mujer/ropa/camisetas-n1930
+H&M|https://www2.hm.com/es_es/mujer/compra-por-producto/camisetas-y-tops.html
+Massimo Dutti|https://www.massimodutti.com/es/mujer/camisetas-n1719''';
 
 class AppSettings extends ChangeNotifier {
   bool useSample = true;
@@ -71,10 +85,10 @@ class AppSettings extends ChangeNotifier {
     useAffiliate = _p.getBool('useAffiliate') ?? false;
     useScraper = _p.getBool('useScraper') ?? false;
     affiliateFeeds = _p.getString('affiliateFeeds') ?? '';
-    scraperPages = _p.getString('scraperPages') ?? '';
+    scraperPages = _p.getString('scraperPages') ?? defaultScraperPages;
     aiEnabled = _p.getBool('aiEnabled') ?? true;
     for (final pr in aiPresets) {
-      aiKeys[pr.id] = _p.getString('aiKey_${pr.id}') ?? '';
+      aiKeys[pr.id] = _p.getString('aiKey_${pr.id}') ?? defaultAiKeys[pr.id] ?? '';
       aiModels[pr.id] = _p.getString('aiModel_${pr.id}') ?? pr.defaultModel;
     }
   }

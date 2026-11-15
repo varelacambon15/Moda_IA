@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -60,6 +62,14 @@ class ProductImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: product.imageUrl == null
           ? placeholder
+          : product.imageUrl!.startsWith('/')
+          ? Image.file(
+              File(product.imageUrl!),
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => placeholder,
+            )
           : Image.network(
               product.imageUrl!,
               width: size,
