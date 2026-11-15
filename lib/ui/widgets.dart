@@ -43,65 +43,53 @@ IconData iconOf(Category c) => switch (c) {
 
 class ProductImage extends StatelessWidget {
   final Product product;
-  final double size;
-  const ProductImage({super.key, required this.product, this.size = 90});
+  final double size; // ancho
+  final double aspect; // alto / ancho
+  const ProductImage({super.key, required this.product, this.size = 90, this.aspect = 1});
 
   @override
   Widget build(BuildContext context) {
-    final bg = colorOf(product.color);
-    final fg = ThemeData.estimateBrightnessForColor(bg) == Brightness.dark
-        ? Colors.white70
-        : Colors.black54;
+    final w = size, h = size * aspect;
+    // Sin foto: fondo gris claro con un toque del color de la prenda, como una ficha de tienda.
+    final tint = Color.lerp(const Color(0xFFF1F1F1), colorOf(product.color), 0.22)!;
     final placeholder = Container(
-      width: size,
-      height: size,
-      color: bg,
-      child: Icon(iconOf(product.category), color: fg, size: size * 0.45),
+      width: w,
+      height: h,
+      color: tint,
+      alignment: Alignment.center,
+      child: Icon(iconOf(product.category), color: Colors.black38, size: w * 0.3),
     );
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: product.imageUrl == null
-          ? placeholder
-          : product.imageUrl!.startsWith('/')
-          ? Image.file(
-              File(product.imageUrl!),
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => placeholder,
-            )
-          : Image.network(
-              product.imageUrl!,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => placeholder,
-            ),
-    );
+    final url = product.imageUrl;
+    if (url == null) return placeholder;
+    return url.startsWith('/')
+        ? Image.file(File(url),
+            width: w, height: h, fit: BoxFit.cover, errorBuilder: (_, __, ___) => placeholder)
+        : Image.network(url,
+            width: w, height: h, fit: BoxFit.cover, errorBuilder: (_, __, ___) => placeholder);
   }
 }
 
 class ProductTile extends StatelessWidget {
   final Product product;
-  const ProductTile({super.key, required this.product});
+  final double width;
+  const ProductTile({super.key, required this.product, this.width = 132});
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
       onTap: () => openUrl(context, product.url),
       child: SizedBox(
-        width: 96,
+        width: width,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProductImage(product: product, size: 96),
-            const SizedBox(height: 4),
-            Text(product.store, style: t.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(product.name, style: t.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
-            Text('${product.price.toStringAsFixed(2)} €',
-                style: t.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+            ProductImage(product: product, size: width, aspect: 4 / 3),
+            const SizedBox(height: 6),
+            Text(product.name.toUpperCase(),
+                style: t.labelSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 2),
+            Text('${product.price.toStringAsFixed(2)} EUR', style: t.bodySmall),
           ],
         ),
       ),

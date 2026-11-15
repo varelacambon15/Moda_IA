@@ -48,11 +48,11 @@ class CatalogPage extends StatelessWidget {
       builder: (context, _) {
         final items = app.mine.items;
         return Scaffold(
-          appBar: AppBar(title: const Text('Mi catálogo')),
+          appBar: AppBar(title: const Text('CATÁLOGO')),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _add(context),
             icon: const Icon(Icons.add),
-            label: const Text('Añadir prenda'),
+            label: const Text('AÑADIR', style: TextStyle(letterSpacing: 2, fontSize: 12)),
           ),
           body: items.isEmpty
               ? const Center(
@@ -64,29 +64,54 @@ class CatalogPage extends StatelessWidget {
                     ),
                   ),
                 )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+              : GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(2, 2, 2, 88),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 2,
+                    childAspectRatio: 0.62,
+                  ),
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final p = items[i];
-                    return Dismissible(
-                      key: ValueKey(p.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        color: Colors.red.shade400,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      onDismissed: (_) => app.mine.remove(p),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                        leading: ProductImage(product: p, size: 56),
-                        title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        subtitle: Text('${p.store} · ${p.category.label} · ${p.color}'),
-                        trailing: Text('${p.price.toStringAsFixed(2)} €'),
-                        onTap: p.url.isEmpty ? null : () => openUrl(context, p.url),
+                    final t = Theme.of(context).textTheme;
+                    return InkWell(
+                      onTap: p.url.isEmpty ? null : () => openUrl(context, p.url),
+                      onLongPress: () async {
+                        final ok = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: const RoundedRectangleBorder(),
+                            title: const Text('Quitar del catálogo'),
+                            content: Text(p.name),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCELAR')),
+                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('QUITAR')),
+                            ],
+                          ),
+                        );
+                        if (ok == true) app.mine.remove(p);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (_, c) =>
+                                  ProductImage(product: p, size: c.maxWidth, aspect: c.maxHeight / c.maxWidth),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                            child: Text(p.name.toUpperCase(),
+                                style: t.labelSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 2, 8, 0),
+                            child: Text('${p.store} · ${p.price.toStringAsFixed(2)} EUR', style: t.bodySmall),
+                          ),
+                        ],
                       ),
                     );
                   },

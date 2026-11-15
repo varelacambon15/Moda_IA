@@ -12,7 +12,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = app.settings;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(title: const Text('AJUSTES')),
       body: ListenableBuilder(
         listenable: s,
         builder: (context, _) => ListView(

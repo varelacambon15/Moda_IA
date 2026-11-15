@@ -123,80 +123,104 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _label(String t) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 22, 16, 8),
+        child: Text(t, style: Theme.of(context).textTheme.labelSmall),
+      );
+
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Looks IA')),
+      appBar: AppBar(title: const Text('LOOKS IA')),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: TextField(
               controller: aiCtrl,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => askAi(),
+              style: t.bodyMedium,
               decoration: InputDecoration(
-                hintText: 'Pídeselo a la IA: "look para una boda en junio, 150 €"',
-                prefixIcon: const Icon(Icons.auto_awesome),
-                suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: askAi),
-                border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(28))),
+                hintText: 'Cuéntale a la IA qué buscas: boda en junio, 150 €',
+                hintStyle: t.bodySmall?.copyWith(color: Colors.black45),
+                prefixIcon: const Icon(Icons.auto_awesome, size: 18),
+                suffixIcon: IconButton(icon: const Icon(Icons.arrow_forward, size: 18), onPressed: askAi),
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text('Ocasión'),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Wrap(
-              spacing: 8,
+          _label('OCASIÓN'),
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 for (final o in Occasion.values)
-                  ChoiceChip(
-                    label: Text(o.label),
-                    selected: occasion == o,
-                    onSelected: (_) => setState(() => occasion = o),
+                  GestureDetector(
+                    onTap: () => setState(() => occasion = o),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 22),
+                      padding: const EdgeInsets.only(bottom: 6),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: occasion == o ? Colors.black : Colors.transparent, width: 1.5),
+                        ),
+                      ),
+                      child: Text(
+                        o.label.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          letterSpacing: 1.5,
+                          fontWeight: occasion == o ? FontWeight.w600 : FontWeight.w300,
+                          color: occasion == o ? Colors.black : Colors.black54,
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ),
           ),
+          _label('TEMPORADA'),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SegmentedButton<Season>(
+              showSelectedIcon: false,
               segments: [
-                for (final s in Season.values) ButtonSegment(value: s, label: Text(s.label)),
+                for (final s in Season.values)
+                  ButtonSegment(value: s, label: Text(s.label.toUpperCase())),
               ],
               selected: {season},
               onSelectionChanged: (s) => setState(() => season = s.first),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Text('Presupuesto máximo: ${budget.round()} €'),
-          ),
+          _label('PRESUPUESTO MÁXIMO · ${budget.round()} EUR'),
           Slider(
             value: budget,
             min: 40,
             max: 600,
             divisions: 56,
-            label: '${budget.round()} €',
             onChanged: (v) => setState(() => budget = v),
           ),
           if (allStores.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
-              child: Text('Tiendas (ninguna = todas)'),
-            ),
+            _label('TIENDAS · NINGUNA = TODAS'),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Wrap(
-                spacing: 8,
+                spacing: 6,
+                runSpacing: 6,
                 children: [
                   for (final s in allStores)
                     FilterChip(
-                      label: Text(s),
+                      showCheckmark: false,
+                      label: Text(s.toUpperCase()),
+                      labelStyle: TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          color: stores.contains(s) ? Colors.white : Colors.black),
                       selected: stores.contains(s),
                       onSelected: (v) => setState(() => v ? stores.add(s) : stores.remove(s)),
                     ),
@@ -205,19 +229,21 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: FilledButton.icon(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+            child: FilledButton(
               onPressed: loading ? null : () => generate(),
-              icon: loading
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.auto_fix_high),
-              label: const Text('Generar looks'),
+              child: loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white))
+                  : const Text('GENERAR LOOKS'),
             ),
           ),
           if (message != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Text(message!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(message!, style: t.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error)),
             ),
           for (final o in outfits) OutfitCard(app: app, outfit: o, request: request),
         ],
