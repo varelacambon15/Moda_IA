@@ -24,7 +24,7 @@ flutter run            # o: flutter build apk --release
    y los enlaces abren la búsqueda de la tienda.
 2. **Feeds de afiliación**: CSV de Awin/Tradedoubler. Una línea por feed: `Zara|https://...csv`.
 3. **Lectura de webs**: JSON-LD (schema.org) de páginas públicas, respetando robots.txt.
-   Una línea por página: `Mango|https://...`. Muchas tiendas lo prohíben en sus términos.
+   Una línea por página: `Mango|https://...`.
 
 ## IA gratuita (Ajustes)
 
